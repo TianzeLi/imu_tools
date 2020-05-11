@@ -124,7 +124,7 @@ bool StatelessOrientation::computeOrientation(
       // vector space world W:
       // Basis: bwx (1,0,0) east, bwy (0,1,0) north, bwz (0,0,1) up
       // vector space local L:
-      // Basis: H, M , A
+      // Basis: H, M, A
       // W(1,0,0) => L(H)
       // W(0,1,0) => L(M)
       // W(0,0,1) => L(A)
@@ -154,19 +154,58 @@ bool StatelessOrientation::computeOrientation(
 
   // magnetic Field E must not be parallel to A,
   // choose an arbitrary orthogonal vector
-  geometry_msgs::Vector3 E;
-  if (fabs(A.x) > 0.1 || fabs(A.y) > 0.1) {
-      E.x = A.y;
-      E.y = A.x;
-      E.z = 0.0;
-  } else if (fabs(A.z) > 0.1) {
-      E.x = 0.0;
-      E.y = A.z;
-      E.z = A.y;
-  } else {
-      // free fall
-      return false;
-  }
+
+  bool forced_zero_yx = true;
+
+  if (!forced_zero_yx) {
+    geometry_msgs::Vector3 E;
+    if (fabs(A.x) > 0.1 || fabs(A.y) > 0.1) {
+        E.x = A.y;
+        E.y = A.x;
+        E.z = 0.0;
+    } else if (fabs(A.z) > 0.1) {
+        E.x = 0.0;
+        E.y = A.z;
+        E.z = A.y;
+    } else {
+        // free fall
+        return false;
+    }
 
   return computeOrientation(frame, A, E, orientation);
+  }
+
+  else {
+    // orientation.x = 0.0;
+    // orientation.y = 0.0;
+    // orientation.z = 0.0;
+    // orientation.w = 1.0;  
+    // return 1;
+
+    A.x = -A.x, A.y = -A.y, A.z = -A.z;
+
+    float Xx, Xy, Xz, Yx, Yy, Yz;
+    float Zx = -A.x, Zy = -A.y, Zz = -A.z;
+    normalizeVector(Zx, Zy, Zz);
+
+    Yy = 0;
+    Yx = sqrt(A.z*A.z + A.x*A.x);
+    Yz = -A.y;
+    normalizeVector(Yx, Yy, Yz);
+
+    crossProduct(Yx, Yy, Yz, Zx, Zy, Zz, Xx, Xy, Xz);
+
+    tf2::Matrix3x3 R;
+
+    R[0][0] = Xx;   R[0][1] = Yx;   R[0][2] = Zx;
+    R[1][0] = Xy;   R[1][1] = Yy;   R[1][2] = Zy;
+    R[2][0] = Xz;   R[2][1] = Yz;   R[2][2] = Zz;
+
+    // Matrix.getRotation assumes vector rotation, but we're using
+    // coordinate systems. Thus negate rotation angle (inverse).
+    tf2::Quaternion q;
+    R.getRotation(q);
+    tf2::convert(q.inverse(), orientation);
+    return true;
+  }
 }
