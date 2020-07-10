@@ -148,14 +148,16 @@ bool StatelessOrientation::computeOrientation(
 bool StatelessOrientation::computeOrientation(
   WorldFrame::WorldFrame frame,
   geometry_msgs::Vector3 A,
-  geometry_msgs::Quaternion& orientation) {
+  geometry_msgs::Quaternion& orientation,
+  // TODO: Check here!
+  bool zero_yaw_init) {
 
   // This implementation could be optimized regarding speed.
 
   // magnetic Field E must not be parallel to A,
   // choose an arbitrary orthogonal vector
 
-  bool forced_zero_yx = false;
+  bool forced_zero_yx = zero_yaw_init;
 
   if (!forced_zero_yx) {
     geometry_msgs::Vector3 E;

@@ -84,6 +84,7 @@ class ImuFilterRos
     // **** paramaters
     WorldFrame::WorldFrame world_frame_;
     bool use_mag_;
+    bool zero_yaw_init_;
     bool use_magnetic_field_msg_;
     bool stateless_;
     bool publish_tf_;

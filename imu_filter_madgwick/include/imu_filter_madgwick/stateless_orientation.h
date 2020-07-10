@@ -41,7 +41,8 @@ public:
   static bool computeOrientation(
     WorldFrame::WorldFrame frame,
     geometry_msgs::Vector3 acceleration,
-    geometry_msgs::Quaternion& orientation);
+    geometry_msgs::Quaternion& orientation,
+    bool zero_yaw_init);
 
 };
 

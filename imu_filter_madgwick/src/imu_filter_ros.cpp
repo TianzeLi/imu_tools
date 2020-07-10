@@ -40,6 +40,8 @@ ImuFilterRos::ImuFilterRos(ros::NodeHandle nh, ros::NodeHandle nh_private):
     stateless_ = false;
   if (!nh_private_.getParam ("use_mag", use_mag_))
    use_mag_ = true;
+  if (!nh_private_.getParam ("zero_yaw_init", zero_yaw_init_))
+   zero_yaw_init_ = false;
   if (!nh_private_.getParam ("publish_tf", publish_tf_))
    publish_tf_ = true;
   if (!nh_private_.getParam ("reverse_tf", reverse_tf_))
@@ -174,7 +176,7 @@ void ImuFilterRos::imuCallback(const ImuMsg::ConstPtr& imu_msg_raw)
   if (!initialized_ || stateless_)
   {
     geometry_msgs::Quaternion init_q;
-    if (!StatelessOrientation::computeOrientation(world_frame_, lin_acc, init_q))
+    if (!StatelessOrientation::computeOrientation(world_frame_, lin_acc, init_q, zero_yaw_init_))
     {
       ROS_WARN_THROTTLE(5.0, "The IMU seems to be in free fall, cannot determine gravity direction!");
       return;
