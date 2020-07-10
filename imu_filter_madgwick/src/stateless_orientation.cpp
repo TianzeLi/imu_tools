@@ -155,7 +155,7 @@ bool StatelessOrientation::computeOrientation(
   // magnetic Field E must not be parallel to A,
   // choose an arbitrary orthogonal vector
 
-  bool forced_zero_yx = true;
+  bool forced_zero_yx = false;
 
   if (!forced_zero_yx) {
     geometry_msgs::Vector3 E;
@@ -172,8 +172,8 @@ bool StatelessOrientation::computeOrientation(
         return false;
     }
 
-  return computeOrientation(frame, A, E, orientation);
-  }
+      return computeOrientation(frame, A, E, orientation);
+    }
 
   else {
     // orientation.x = 0.0;
