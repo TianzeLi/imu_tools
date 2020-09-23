@@ -25,7 +25,7 @@
 	(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
 	LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
 	ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-	(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+	(INCLUDING NEGLIGENCE OR OTHERWISE)p ARISING IN ANY WAY OUT OF THE USE OF THIS
 	SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
@@ -95,6 +95,10 @@ void ComplementaryFilterROS::initializeParams()
   bool do_bias_estimation;
   double bias_alpha;
   bool do_adaptive_gain;
+  bool do_acc_lowpass;
+  bool do_mag_lowpass;
+  double alpha_acc;
+  double alpha_mag;
 
   if (!nh_private_.getParam ("fixed_frame", fixed_frame_))
     fixed_frame_ = "odom";
@@ -118,6 +122,16 @@ void ComplementaryFilterROS::initializeParams()
     bias_alpha = 0.01;
   if (!nh_private_.getParam ("do_adaptive_gain", do_adaptive_gain))
     do_adaptive_gain = true;
+  
+  // Low-pass filter part. 
+  if (!nh_private_.getParam ("do_acc_lowpass", do_acc_lowpass))
+    do_acc_lowpass = false;
+  if (!nh_private_.getParam ("do_mag_lowpass", do_mag_lowpass))
+    do_mag_lowpass = false;
+  if (!nh_private_.getParam ("alpha_acc", alpha_acc))
+    alpha_acc = 0.0;
+  if (!nh_private_.getParam ("alpha_mag", alpha_mag))
+    alpha_mag = 0.0;
 
   double orientation_stddev;
   if (!nh_private_.getParam ("orientation_stddev", orientation_stddev))
@@ -127,6 +141,19 @@ void ComplementaryFilterROS::initializeParams()
 
   filter_.setDoBiasEstimation(do_bias_estimation);
   filter_.setDoAdaptiveGain(do_adaptive_gain);
+
+  // Low-pass filter part.
+  filter_.setDoAccLowpass(do_acc_lowpass);
+  filter_.setDoMagLowpass(do_mag_lowpass);
+  
+  if(!filter_.setAlphaAcc(alpha_acc))
+    ROS_WARN("Invalid alpha_acc passed to ComplementaryFilter.");
+  if (use_mag_)
+  {
+    if(!filter_.setAlphaAcc(alpha_mag))
+      ROS_WARN("Invalid alpha_mag passed to ComplementaryFilter.");
+  }
+
 
   if(!filter_.setGainAcc(gain_acc))
     ROS_WARN("Invalid gain_acc passed to ComplementaryFilter.");

@@ -37,7 +37,7 @@
 
 namespace imu_tools {
 
-const double ComplementaryFilter::kGravity = 9.81;
+const double ComplementaryFilter::kGravity = 9.82;
 const double ComplementaryFilter::gamma_ = 0.01;
 // Bias estimation steady state thresholds
 const double ComplementaryFilter::kAngularVelocityThreshold = 0.2;
@@ -48,6 +48,14 @@ ComplementaryFilter::ComplementaryFilter() :
     gain_acc_(0.01),
     gain_mag_(0.01),
     bias_alpha_(0.01),
+    // Low-pass part.
+    do_acc_lowpass_(false),
+    do_mag_lowpass_(false),
+    alpha_acc_(0.0),
+    alpha_mag_(0.0),
+    ax_prev_(0.0), ay_prev_(0.0), az_prev_(0.0),
+    mx_prev_(0.0), my_prev_(0.0), mz_prev_(0.0),
+
     do_bias_estimation_(true),
     do_adaptive_gain_(false),
     initialized_(false),
@@ -77,6 +85,59 @@ bool ComplementaryFilter::getDoAdaptiveGain() const
 {
   return do_adaptive_gain_;
 }
+
+// Low-pass part.
+void ComplementaryFilter::setDoAccLowpass(bool do_acc_lowpass)
+{
+  do_acc_lowpass_ = do_acc_lowpass;
+}
+
+bool ComplementaryFilter::getDoAccLowpass() const
+{
+  return do_acc_lowpass_;
+}
+
+void ComplementaryFilter::setDoMagLowpass(bool do_mag_lowpass)
+{
+  do_mag_lowpass_ = do_mag_lowpass;
+}
+
+bool ComplementaryFilter::getDoMagLowpass() const
+{
+  return do_mag_lowpass_;
+}
+
+bool ComplementaryFilter::setAlphaAcc(double alpha)
+{
+  if (alpha >= 0 && alpha <= 1.0)
+  {
+    alpha_acc_ = alpha;
+    return true;
+  }
+  else
+    return false;
+}
+bool ComplementaryFilter::setAlphaMag(double alpha)
+{
+  if (alpha >= 0 && alpha <= 1.0)
+  {
+    alpha_mag_ = alpha;
+    return true;
+  }
+  else
+    return false;
+}
+
+double ComplementaryFilter::getAlphaAcc() const 
+{
+  return alpha_acc_;
+}
+
+double ComplementaryFilter::getAlphaMag() const 
+{
+  return alpha_mag_;
+}
+
 
 bool ComplementaryFilter::setGainAcc(double gain)
 {
@@ -165,6 +226,9 @@ void ComplementaryFilter::update(double ax, double ay, double az,
     initialized_ = true;
     return;
   }
+
+  if (do_acc_lowpass_)
+    accLowpass(ax, ay, az);
   
   // Bias estimation.
   if (do_bias_estimation_)
@@ -218,6 +282,12 @@ void ComplementaryFilter::update(double ax, double ay, double az,
     initialized_ = true;
     return;
   }
+
+  if (do_acc_lowpass_)
+    accLowpass(ax, ay, az);
+  
+  if (do_mag_lowpass_)
+  	magLowpass(mx, my, mz);
 
   // Bias estimation.
   if (do_bias_estimation_)
@@ -298,6 +368,30 @@ void ComplementaryFilter::updateBiases(double ax, double ay, double az,
   wy_prev_ = wy; 
   wz_prev_ = wz;
 }
+ 
+void ComplementaryFilter::accLowpass(double& ax, double& ay, double& az)
+{
+    // Acc_lowpass(j+1,i) = (1 - alpha)*Acc(j+1,i) + alpha*Acc_lowpass(j,i);
+    ax = (1 - alpha_acc_)*ax + alpha_acc_*ax_prev_; 
+    ay = (1 - alpha_acc_)*ay + alpha_acc_*ay_prev_; 
+    az = (1 - alpha_acc_)*az + alpha_acc_*az_prev_; 
+
+    ax_prev_ = ax;
+    ay_prev_ = ay;
+    az_prev_ = az;
+}
+
+void ComplementaryFilter::magLowpass(double& mx, double& my, double& mz)
+{
+    // Acc_lowpass(j+1,i) = (1 - alpha)*Acc(j+1,i) + alpha*Acc_lowpass(j,i);
+    mx = (1 - alpha_mag_)*mx + alpha_mag_*mx_prev_; 
+    my = (1 - alpha_mag_)*my + alpha_mag_*my_prev_; 
+    mz = (1 - alpha_mag_)*mz + alpha_mag_*mz_prev_; 
+
+    mx_prev_ = mx;
+    my_prev_ = my;
+    mz_prev_ = mz;
+}
 
 void ComplementaryFilter::getPrediction(
     double wx, double wy, double wz, double dt, 
@@ -324,6 +418,14 @@ void ComplementaryFilter::getMeasurement(
   // the orientation of the Global frame wrt the Local frame with arbitrary yaw
   // (intermediary frame). q3_acc is defined as 0.
   double q0_acc, q1_acc, q2_acc, q3_acc;
+
+  ax_prev_ = ax;
+  ay_prev_ = ay;
+  az_prev_ = az;
+  mx_prev_ = mx;
+  my_prev_ = my;
+  mz_prev_ = mz;
+
     
   // Normalize acceleration vector.
   normalizeVector(ax, ay, az);
@@ -378,7 +480,11 @@ void ComplementaryFilter::getMeasurement(
   // q_acc is the quaternion obtained from the acceleration vector representing 
   // the orientation of the Global frame wrt the Local frame with arbitrary yaw
   // (intermediary frame). q3_acc is defined as 0.
-     
+  
+  ax_prev_ = ax;
+  ay_prev_ = ay;
+  az_prev_ = az;
+
   // Normalize acceleration vector.
   normalizeVector(ax, ay, az);
 

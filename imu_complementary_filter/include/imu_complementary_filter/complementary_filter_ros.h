@@ -93,6 +93,7 @@ class ComplementaryFilterROS
     ros::Time time_prev_;
     bool initialized_filter_;
 
+
     void initializeParams();
     void imuCallback(const ImuMsg::ConstPtr& imu_msg_raw);
     void imuMagCallback(const ImuMsg::ConstPtr& imu_msg_raw,

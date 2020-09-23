@@ -62,6 +62,18 @@ class ComplementaryFilter
     double getAngularVelocityBiasY() const;
     double getAngularVelocityBiasZ() const;
 
+    // Low-pass filter part.
+    void setDoAccLowpass(bool do_acc_lowpass);
+    bool getDoAccLowpass() const;
+
+    void setDoMagLowpass(bool do_mag_lowpass);
+    bool getDoMagLowpass() const;
+
+    bool setAlphaAcc(double alpha_acc);
+    bool setAlphaMag(double alpha_mag);
+    double getAlphaAcc() const;
+    double getAlphaMag() const;
+
     // Set the orientation, as a Hamilton Quaternion, of the body frame wrt the
     // fixed frame.
     void setOrientation(double q0, double q1, double q2, double q3);
@@ -112,6 +124,19 @@ class ComplementaryFilter
     bool initialized_;
     bool steady_state_;
 
+    // Low-pass filter part.
+    // Parameter whether to do acc low-pass.
+    bool do_acc_lowpass_;
+    bool do_mag_lowpass_;
+
+    // Alpha value for the low-pass filters. 
+    double alpha_acc_;
+    double alpha_mag_;
+
+    // First order ow-pass filter depended variables.
+    double ax_prev_, ay_prev_, az_prev_;
+    double mx_prev_, my_prev_, mz_prev_; 
+
     // The orientation as a Hamilton quaternion (q0 is the scalar). Represents
     // the orientation of the fixed frame wrt the body frame.
     double q0_, q1_, q2_, q3_; 
@@ -121,6 +146,11 @@ class ComplementaryFilter
 
     // Bias in angular velocities;
     double wx_bias_, wy_bias_, wz_bias_;
+
+    // Low-pass functions.
+    void accLowpass(double& ax, double& ay, double& az);
+    void magLowpass(double& mx, double& my, double& mz);
+
 
     void updateBiases(double ax, double ay, double az, 
                       double wx, double wy, double wz);
