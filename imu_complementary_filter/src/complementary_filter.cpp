@@ -227,8 +227,12 @@ void ComplementaryFilter::update(double ax, double ay, double az,
     return;
   }
 
+  ROS_DEBUG_STREAM("Acc before low-pass. ax: " << ax << ", ay: " << ay << ", az: " << az);
   if (do_acc_lowpass_)
+  {
     accLowpass(ax, ay, az);
+	ROS_DEBUG_STREAM("Acc after low-pass. ax " << ax << ", ay: " << ay << ", az: " << az);
+  }
   
   // Bias estimation.
   if (do_bias_estimation_)
@@ -281,6 +285,13 @@ void ComplementaryFilter::update(double ax, double ay, double az,
                    q0_, q1_, q2_, q3_);
     initialized_ = true;
     return;
+  }
+
+  ROS_DEBUG_STREAM("Acc before low-pass. ax: " << ax << ", ay: " << ay << ", az: " << az);
+  if (do_acc_lowpass_)
+  {
+    accLowpass(ax, ay, az);
+	ROS_DEBUG_STREAM("Acc after low-pass. ax " << ax << ", ay: " << ay << ", az: " << az);
   }
 
   if (do_acc_lowpass_)

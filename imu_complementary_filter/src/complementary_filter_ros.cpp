@@ -43,7 +43,8 @@ ComplementaryFilterROS::ComplementaryFilterROS(
   nh_private_(nh_private),
   initialized_filter_(false)
 {
-  ROS_INFO("Starting ComplementaryFilterROS");
+  ROS_INFO("Starting ComplementaryFilterROSHEY!!");
+
   initializeParams();
 
   int queue_size = 5;
@@ -150,7 +151,7 @@ void ComplementaryFilterROS::initializeParams()
     ROS_WARN("Invalid alpha_acc passed to ComplementaryFilter.");
   if (use_mag_)
   {
-    if(!filter_.setAlphaAcc(alpha_mag))
+    if(!filter_.setAlphaMag(alpha_mag))
       ROS_WARN("Invalid alpha_mag passed to ComplementaryFilter.");
   }
 

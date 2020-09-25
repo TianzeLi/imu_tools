@@ -32,6 +32,9 @@
 #ifndef IMU_TOOLS_COMPLEMENTARY_FILTER_H
 #define IMU_TOOLS_COMPLEMENTARY_FILTER_H
 
+#include <ros/console.h>
+
+
 namespace imu_tools {
 
 class ComplementaryFilter
